@@ -1,0 +1,55 @@
+name: nav_assist
+description: AI Navigation Assistant for visually impaired users
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.10.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # USB Serial communication with Arduino over OTG
+  usb_serial: ^0.4.0
+
+  # HTTP requests for Gemini API
+  http: ^1.1.0
+
+  # Phone camera access
+  camera: ^0.10.5+9
+
+  # Text to speech for navigation cues
+  flutter_tts: ^3.8.5
+
+  # CSV file writing for research data
+  csv: ^5.0.2
+
+  # File path resolution
+  path_provider: ^2.1.1
+
+  # Runtime permission requests
+  permission_handler: ^11.0.1
+
+  # Image processing utilities
+  image: ^4.1.3
+
+  # Base64 encoding for Gemini image upload
+  convert: ^3.1.1
+
+  # Storing API key and settings
+  shared_preferences: ^2.2.2
+
+  # Wake lock to keep screen on during navigation
+  wakelock_plus: ^1.1.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/

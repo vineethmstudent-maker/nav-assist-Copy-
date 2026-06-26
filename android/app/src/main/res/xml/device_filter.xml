@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Arduino Nano genuine (FTDI chip) -->
+    <usb-device vendor-id="9025" />
+    <!-- Arduino Nano clone (CH340 chip — most common cheap clone) -->
+    <usb-device vendor-id="6790" />
+    <!-- CH340 alternative vendor ID -->
+    <usb-device vendor-id="4292" />
+    <!-- CP2102 chip (another common clone) -->
+    <usb-device vendor-id="4292" product-id="60000" />
+</resources>
