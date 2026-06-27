@@ -34,13 +34,13 @@ class DataLogger {
   }
 
   void log({
-    required SensorData     sensors,
-    required bool           safetyOverride,
-    required bool           gateCalled,
-    required GateResult?    gate,
-    required bool           classifyCalled,
+    required SensorData       sensors,
+    required bool             safetyOverride,
+    required bool             gateCalled,
+    required GateResult?      gate,
+    required bool             classifyCalled,
     required DetectionResult? detection,
-    required NavCue         cue,
+    required NavCue           cue,
   }) {
     if (_sink == null) return;
     try {
@@ -49,8 +49,8 @@ class DataLogger {
         sensors.left.toStringAsFixed(1),
         sensors.center.toStringAsFixed(1),
         sensors.right.toStringAsFixed(1),
-        safetyOverride   ? '1' : '0',
-        gateCalled       ? '1' : '0',
+        safetyOverride ? '1' : '0',
+        gateCalled     ? '1' : '0',
         gate?.obstacleDetected == true ? '1' : '0',
         gate?.confidence.toStringAsFixed(3) ?? '',
         gate?.latencyMs.toString() ?? '',
@@ -63,8 +63,8 @@ class DataLogger {
         cue.source.name,
         cue.direction,
         cue.totalLatencyMs.toString(),
-        cue.sceneDescTrigger != null ? '1' : '0',
-        cue.sceneDescTrigger ?? '',
+        cue.sceneTrigger != null ? '1' : '0',
+        cue.sceneTrigger ?? '',
         '"${(cue.sceneDescription ?? '').replaceAll('"', "'")}"',
       ];
       _sink!.writeln(row.join(','));
@@ -81,6 +81,6 @@ class DataLogger {
     print('[logger] Saved $_rows rows → $_filePath');
   }
 
-  String get filePath  => _filePath;
-  int    get rowCount  => _rows;
+  String get filePath => _filePath;
+  int    get rowCount => _rows;
 }
