@@ -32,6 +32,12 @@ class _NavigationScreenState extends State<NavigationScreen> {
   bool _arduinoConnected = false;
   Timer? _pipelineTimer;
 
+  // ── Camera frame diagnostics ─────────────────────────────────────────
+  int _frameCount = 0;
+  int _nullFrameCount = 0;
+  int _lastFrameBytes = 0;
+  DateTime? _lastFrameTime;
+
   @override
   void initState() {
     super.initState();
@@ -47,9 +53,9 @@ class _NavigationScreenState extends State<NavigationScreen> {
   Future<void> _initialize() async {
     await _tts.init();
     await _camera.init();
-    
+
     _arduinoConnected = await _arduino.connect();
-    
+
     _arduino.sensorStream.listen((reading) {
       if (mounted) {
         setState(() {
@@ -66,13 +72,27 @@ class _NavigationScreenState extends State<NavigationScreen> {
     );
 
     await WakelockPlus.enable();
-    await _tts.speak("Navigation assistant ready");
+    await _tts.speak("Navigation assistant ready", cueKey: 'startup_ready');
   }
 
   Future<void> _runCycle(Timer t) async {
     if (!_isRunning) return;
 
     final bytes = await _camera.captureFrame();
+    _frameCount++;
+    if (bytes == null) {
+      _nullFrameCount++;
+    } else {
+      _lastFrameBytes = bytes.length;
+      _lastFrameTime = DateTime.now();
+    }
+    // Check `adb logcat` or the Action/run console for this line to
+    // confirm the camera is actually producing fresh frames.
+    // ignore: avoid_print
+    print('[camera] frame #$_frameCount: '
+        '${bytes == null ? "NULL" : "${bytes.length} bytes"} '
+        '(nullCount=$_nullFrameCount)');
+
     final cue = await _cascade.process(_sensors, bytes);
 
     _logger.log(
@@ -245,12 +265,38 @@ class _NavigationScreenState extends State<NavigationScreen> {
             // Session stats row
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+              child: Column(
                 children: [
-                  Text('Frames: ${_cascade.totalFrames}'),
-                  Text('API: ${_cascade.classifyCount}'),
-                  Text('Saved: ${_cascade.apiSavingPercent.toStringAsFixed(0)}%'),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Text('Frames: ${_cascade.totalFrames}'),
+                      Text('API: ${_cascade.classifyCount}'),
+                      Text('Saved: ${_cascade.apiSavingPercent.toStringAsFixed(0)}%'),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  // ── Camera diagnostics row ─────────────────────────
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Text(
+                        'Frame: ${_lastFrameBytes}B'
+                        '${_lastFrameTime != null ? " @${_lastFrameTime!.second}s" : ""}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: _lastFrameBytes > 0 ? Colors.green : Colors.red,
+                        ),
+                      ),
+                      Text(
+                        'Null frames: $_nullFrameCount/$_frameCount',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: _nullFrameCount > 0 ? Colors.orange : Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -262,7 +308,8 @@ class _NavigationScreenState extends State<NavigationScreen> {
                 onPressed: () async {
                   _isRunning = false;
                   _pipelineTimer?.cancel();
-                  await _tts.speakUrgent("Navigation stopped");
+                  await _tts.speakUrgent("Navigation stopped",
+                      cueKey: 'navigation_stopped');
                   if (mounted) {
                     Navigator.pop(context);
                   }
